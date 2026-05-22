@@ -1,3 +1,4 @@
+[![Board Status](https://dev.azure.com/MCAPSGitteDemo/781a40c6-3ce8-4594-86da-68a8e6f6cec8/8d6872d0-6a72-4f32-a4ed-e2d3dbef643d/_apis/work/boardbadge/ab5d63fd-d9bd-472f-91aa-e4e9373784da)](https://dev.azure.com/MCAPSGitteDemo/781a40c6-3ce8-4594-86da-68a8e6f6cec8/_boards/board/t/8d6872d0-6a72-4f32-a4ed-e2d3dbef643d/Microsoft.RequirementCategory)
 # Get Started with DevOps, DevSecOps, SRE, and Platform Engineering
 
 Welcome! This repository contains all the instructions and resources needed to complete hands-on exercises from the **DevOps learning paths** on [Microsoft Learn](https://learn.microsoft.com/).
