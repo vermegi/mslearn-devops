@@ -81,7 +81,7 @@ app.MapGet("/", () =>
         .product-card h3 { margin: 0 0 .25rem; font-size: 1rem; }
         .product-card .category { font-size: .8rem; color: #888; margin-bottom: .3rem; }
         .product-card .price { font-weight: bold; color: #0078d4; }
-        .out-of-stock-badge { position: absolute; top: .5rem; right: .5rem; background: #d83b01; color: #fff; font-size: .7rem; font-weight: bold; padding: .2rem .45rem; border-radius: 4px; text-transform: uppercase; letter-spacing: .05em; }
+        .out-of-stock-badge { position: absolute; top: .5rem; right: .5rem; text-transform: uppercase; letter-spacing: .05em; }
         .product-card.out-of-stock { opacity: .7; }
         #search-results-info { font-size: .9rem; color: #555; margin-bottom: .5rem; }
         #no-results { display: none; color: #666; font-style: italic; }
@@ -151,7 +151,7 @@ app.MapGet("/", () =>
                 const card = document.createElement('div');
                 card.className = 'product-card' + (inStock ? '' : ' out-of-stock');
                 card.innerHTML = `
-                    ${!inStock ? '<span class="out-of-stock-badge">Out of Stock</span>' : ''}
+                    ${!inStock ? '<span class="badge bg-secondary out-of-stock-badge">Out of Stock</span>' : ''}
                     <h3>${escHtml(p.name)}</h3>
                     <div class="category">${escHtml(p.category)}</div>
                     <div>${escHtml(p.description)}</div>
