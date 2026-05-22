@@ -11,6 +11,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<CosmosDbService>();
 builder.Services.AddSingleton<OrderValidationService>();
+builder.Services.AddSingleton<ProductSearchService>();
 
 var app = builder.Build();
 
@@ -69,6 +70,21 @@ app.MapGet("/", () =>
         ul { padding-left: 1.25rem; }
         code { background: #f2f2f2; padding: .15rem .35rem; border-radius: 4px; }
         .card { max-width: 760px; border: 1px solid #ddd; border-radius: 10px; padding: 1rem 1.25rem; }
+        .search-section { max-width: 760px; margin-top: 1.5rem; border: 1px solid #ddd; border-radius: 10px; padding: 1rem 1.25rem; }
+        .search-bar { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; margin-bottom: 1rem; }
+        .search-bar input[type=text] { flex: 1; min-width: 200px; padding: .4rem .6rem; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
+        .search-bar button { padding: .4rem .9rem; background: #0078d4; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; }
+        .search-bar button:hover { background: #005a9e; }
+        .filter-row { font-size: .9rem; color: #555; display: flex; align-items: center; gap: .4rem; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem; }
+        .product-card { border: 1px solid #ddd; border-radius: 8px; padding: .75rem; position: relative; background: #fff; }
+        .product-card h3 { margin: 0 0 .25rem; font-size: 1rem; }
+        .product-card .category { font-size: .8rem; color: #888; margin-bottom: .3rem; }
+        .product-card .price { font-weight: bold; color: #0078d4; }
+        .out-of-stock-badge { position: absolute; top: .5rem; right: .5rem; background: #d83b01; color: #fff; font-size: .7rem; font-weight: bold; padding: .2rem .45rem; border-radius: 4px; text-transform: uppercase; letter-spacing: .05em; }
+        .product-card.out-of-stock { opacity: .7; }
+        #search-results-info { font-size: .9rem; color: #555; margin-bottom: .5rem; }
+        #no-results { display: none; color: #666; font-style: italic; }
     </style>
 </head>
 <body>
@@ -78,6 +94,7 @@ app.MapGet("/", () =>
         <ul>
             <li><a href="/health">GET /health</a> - service and Cosmos connectivity check</li>
             <li><a href="/products">GET /products</a> - list products</li>
+            <li><a href="/products/search">GET /products/search</a> - search products (supports <code>q</code> and <code>hideOutOfStock</code> params)</li>
             <li><a href="/orders">GET /orders</a> - list orders</li>
             <li><a href="/swagger">Swagger UI</a> - interactive API explorer</li>
             <li><a href="/swagger/v1/swagger.json">OpenAPI JSON</a> - API schema</li>
@@ -88,6 +105,70 @@ app.MapGet("/", () =>
             <li><code>POST /orders</code></li>
         </ul>
     </div>
+
+    <div class="search-section">
+        <h2 style="margin-top:0">Product Search</h2>
+        <div class="search-bar">
+            <input type="text" id="search-input" placeholder="Search products…" aria-label="Search products" />
+            <button onclick="runSearch()">Search</button>
+        </div>
+        <div class="filter-row">
+            <input type="checkbox" id="hide-oos" onchange="runSearch()" />
+            <label for="hide-oos">Hide out-of-stock items</label>
+        </div>
+        <p id="search-results-info"></p>
+        <p id="no-results">No products found.</p>
+        <div class="product-grid" id="product-grid"></div>
+    </div>
+
+    <script>
+        async function runSearch() {
+            const q = document.getElementById('search-input').value;
+            const hideOos = document.getElementById('hide-oos').checked;
+            const params = new URLSearchParams();
+            if (q) params.set('q', q);
+            if (hideOos) params.set('hideOutOfStock', 'true');
+
+            const res = await fetch('/products/search?' + params.toString());
+            if (!res.ok) { console.error('Search failed', res.status); return; }
+            const products = await res.json();
+
+            const grid = document.getElementById('product-grid');
+            const info = document.getElementById('search-results-info');
+            const noResults = document.getElementById('no-results');
+            grid.innerHTML = '';
+
+            if (products.length === 0) {
+                noResults.style.display = '';
+                info.textContent = '';
+                return;
+            }
+            noResults.style.display = 'none';
+            info.textContent = products.length + ' product(s) found';
+
+            products.forEach(p => {
+                const inStock = p.availableStock > 0;
+                const card = document.createElement('div');
+                card.className = 'product-card' + (inStock ? '' : ' out-of-stock');
+                card.innerHTML = `
+                    ${!inStock ? '<span class="out-of-stock-badge">Out of Stock</span>' : ''}
+                    <h3>${escHtml(p.name)}</h3>
+                    <div class="category">${escHtml(p.category)}</div>
+                    <div>${escHtml(p.description)}</div>
+                    <div class="price">$${p.price.toFixed(2)}</div>
+                    ${inStock ? '<div style="font-size:.8rem;color:#107c10">In stock: ' + p.availableStock + '</div>' : ''}
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function escHtml(str) {
+            return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        // Load all products on page load
+        runSearch();
+    </script>
 </body>
 </html>
 """;
@@ -109,6 +190,18 @@ app.MapGet("/products", async (CosmosDbService db) =>
 {
     var products = await db.GetProductsAsync();
     return Results.Ok(products);
+});
+
+// GET /products/search — search products with optional query and out-of-stock filter
+app.MapGet("/products/search", async (
+    string? q,
+    bool hideOutOfStock,
+    CosmosDbService db,
+    ProductSearchService searchService) =>
+{
+    var all = await db.GetProductsAsync();
+    var results = searchService.Search(all, q, hideOutOfStock);
+    return Results.Ok(results);
 });
 
 // GET /products/{id} — get a single product by id
