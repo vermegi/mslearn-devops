@@ -89,6 +89,8 @@ public class CosmosDbService
             new() { Name = "Office Chair",         Category = "Furniture",   Description = "Mesh office chair with lumbar support",              Price = 349.99m, Stock = 25 },
             new() { Name = "Laptop Stand",         Category = "Accessories", Description = "Aluminum laptop stand with ventilation",             Price = 49.99m,  Stock = 300 },
             new() { Name = "Mouse Pad XL",         Category = "Accessories", Description = "Extended mouse pad with stitched edges",             Price = 19.99m,  Stock = 500 },
+            new() { Name = "Noise-Canceling Headset", Category = "Electronics", Description = "USB headset for calls and meetings",             Price = 129.99m, Stock = 0 },
+            new() { Name = "Cable Organizer Tray",   Category = "Accessories", Description = "Under-desk cable tray with mounting clamps",      Price = 24.99m,  Stock = 0 },
         };
 
         foreach (var product in products)

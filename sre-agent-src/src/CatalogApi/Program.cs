@@ -11,6 +11,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<CosmosDbService>();
 builder.Services.AddSingleton<OrderValidationService>();
+builder.Services.AddSingleton<ProductSearchService>();
 
 var app = builder.Build();
 
@@ -104,11 +105,12 @@ app.MapGet("/health", async (CosmosDbService db) =>
         : Results.Json(new { status = "unhealthy", timestamp = DateTime.UtcNow }, statusCode: 503);
 });
 
-// GET /products — list all products
-app.MapGet("/products", async (CosmosDbService db) =>
+// GET /products — list products, with optional text search and stock filtering
+app.MapGet("/products", async (string? search, bool hideOutOfStock, CosmosDbService db, ProductSearchService searchService) =>
 {
     var products = await db.GetProductsAsync();
-    return Results.Ok(products);
+    var results = searchService.ApplySearch(products, search, hideOutOfStock);
+    return Results.Ok(results);
 });
 
 // GET /products/{id} — get a single product by id
