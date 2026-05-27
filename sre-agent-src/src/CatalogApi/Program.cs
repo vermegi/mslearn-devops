@@ -106,10 +106,10 @@ app.MapGet("/health", async (CosmosDbService db) =>
 });
 
 // GET /products — list products, with optional text search and stock filtering
-app.MapGet("/products", async (string? search, bool hideOutOfStock, CosmosDbService db, ProductSearchService searchService) =>
+app.MapGet("/products", async (string? search, bool? hideOutOfStock, CosmosDbService db, ProductSearchService searchService) =>
 {
     var products = await db.GetProductsAsync();
-    var results = searchService.ApplySearch(products, search, hideOutOfStock);
+    var results = searchService.ApplySearch(products, search, hideOutOfStock ?? false);
     return Results.Ok(results);
 });
 
