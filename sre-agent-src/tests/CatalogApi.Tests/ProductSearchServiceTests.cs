@@ -52,8 +52,10 @@ public class ProductSearchServiceTests
             Stock = 0
         };
 
-        Assert.True(product.IsOutOfStock);
-        Assert.Equal("Out of Stock", product.AvailabilityBadgeText);
-        Assert.Equal("badge bg-secondary", product.AvailabilityBadgeClass);
+        var result = ProductSearchResult.FromProduct(product);
+
+        Assert.True(result.IsOutOfStock);
+        Assert.Equal("Out of Stock", result.AvailabilityBadgeText);
+        Assert.Equal("badge bg-secondary", result.AvailabilityBadgeClass);
     }
 }

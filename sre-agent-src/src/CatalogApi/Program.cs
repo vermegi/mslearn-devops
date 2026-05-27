@@ -110,7 +110,7 @@ app.MapGet("/products", async (string? search, bool? hideOutOfStock, CosmosDbSer
 {
     var products = await db.GetProductsAsync();
     var results = searchService.ApplySearch(products, search, hideOutOfStock ?? false);
-    return Results.Ok(results);
+    return Results.Ok(results.Select(ProductSearchResult.FromProduct));
 });
 
 // GET /products/{id} — get a single product by id

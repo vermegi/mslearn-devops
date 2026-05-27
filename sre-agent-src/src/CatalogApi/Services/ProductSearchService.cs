@@ -14,11 +14,11 @@ public class ProductSearchService
 
         if (hideOutOfStock)
         {
-            results = results.Where(product => !product.IsOutOfStock);
+            results = results.Where(product => product.Stock > 0);
         }
 
         return results
-            .OrderBy(product => product.IsOutOfStock)
+            .OrderBy(product => product.Stock <= 0)
             .ThenBy(product => product.Name, StringComparer.OrdinalIgnoreCase);
     }
 }
