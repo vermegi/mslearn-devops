@@ -123,6 +123,11 @@ app.MapGet("/products/{id}", async (string id, CosmosDbService db) =>
 // POST /products — create a new product
 app.MapPost("/products", async (Product product, CosmosDbService db) =>
 {
+    if (product.Stock < 0)
+    {
+        return Results.BadRequest(new { error = "Stock cannot be negative." });
+    }
+
     var created = await db.CreateProductAsync(product);
     return Results.Created($"/products/{created.Id}", created);
 });

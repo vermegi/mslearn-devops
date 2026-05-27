@@ -9,7 +9,7 @@ public class ProductSearchServiceTests
     private readonly ProductSearchService _searchService = new();
 
     [Fact]
-    public void ApplySearch_SortsOutOfStockProductsAfterInStockMatches()
+    public void ApplySearch_SortsInStockProductsBeforeOutOfStock()
     {
         var products = new[]
         {
